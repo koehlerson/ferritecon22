@@ -1,4 +1,4 @@
-using Ferrite
+using Ferrite, FerriteViz
 using BlockArrays, SparseArrays, LinearAlgebra
 
 function create_cook_grid(nx, ny)
@@ -166,11 +166,6 @@ function solve(ν, interpolation_u, interpolation_p)
     u = Symmetric(K) \ f;
 
     # export
-    filename = "cook_" * (isa(interpolation_u, Lagrange{2,RefTetrahedron,1}) ? "linear" : "quadratic") *
-                         "_linear"
-    vtk_grid(filename, dh) do vtkfile
-        vtk_point_data(vtkfile, dh, u)
-    end
     return u,dh
 end
 
@@ -178,3 +173,4 @@ linear    = Lagrange{2,RefTetrahedron,1}()
 quadratic = Lagrange{2,RefTetrahedron,2}()
 
 u,dh = solve(0.4999999, quadratic, linear);
+plotter = MakiePlotter(dh,u)
