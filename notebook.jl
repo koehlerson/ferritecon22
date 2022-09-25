@@ -18,6 +18,8 @@ end
 begin
 	using Ferrite
 	using FerriteViz#master
+	using FerriteGmsh
+	using Colors
 	import WGLMakie
 	using PlutoUI
 	import JSServe
@@ -125,13 +127,51 @@ everything is called with a `plotter::MakiePlotter` Object. However, there is al
 # ╔═╡ 1b67dfd5-d426-426a-b2a3-a53c4d5d577c
 surface(dh,u)
 
+# ╔═╡ 3f98a1fe-a88a-40a6-84af-064ff718345d
+begin
+	ferritelogo = saved_file_to_grid("ferrite-logo.msh")
+	dh_logo = DofHandler(ferritelogo)
+	push!(dh_logo,:u,1)
+	close!(dh_logo)
+	u_logo = zeros(ndofs(dh_logo))
+	julia_purple=1
+	julia_red=2
+	julia_blue=3
+	julia_green=4
+	colormap = Dict(
+        "1" => julia_purple,
+        "2" => julia_red,
+        "3" => julia_red,
+        "4" => julia_blue,
+        "5" => julia_purple,
+        "6" => julia_green
+    )
+	cellset_u = zeros(getncells(ferritelogo))
+    for (cellidx,cell) in enumerate(getcells(ferritelogo))
+        for (cellsetname,cellsetvalue) in colormap
+            if cellidx in ferritelogo.cellsets[cellsetname]
+                cellset_u[cellidx] = cellsetvalue
+            end
+        end
+	end
+	plotterlogo = MakiePlotter(dh_logo,u_logo)
+	nothing
+end
+
+# ╔═╡ fb9105c0-c109-4296-9d13-148fd31d19ee
+begin
+	fig_logo, ax_logo, cp_logo = cellplot(plotterlogo,cellset_u,colormap=[colorant"rgb(149,88,178)",colorant"rgb(203,60,51)",colorant"rgb(64,99,216)",colorant"rgb(56,152,38)"])
+	wireframe!(plotterlogo,markersize=0,strokewidth=2)
+	fig_logo
+end
+
 # ╔═╡ a85d454b-2c54-4738-b5a2-cefbe9706860
 md"""
 ## Some special things
 - **ferriteviewer** small viewer that shows how you can compose the existing plot methods to obtain a viewer tailored to your needs
 - **liveplotting** supported, updates the plot while your simulation runs
 
-**Let's take a look at cellplots, the `ferriteviewer` example, live plotting and how to use the other backends!**
+**Let's take a look at how to use other backends, the `ferriteviewer` example, and live plotting!**
 """
 
 # ╔═╡ 6f44adaf-be84-45a7-b28f-fb686faf6a83
@@ -158,7 +198,9 @@ md"""
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Ferrite = "c061ca5d-56c9-439f-9c0e-210fe06d3992"
+FerriteGmsh = "4f95f4f8-b27c-4ae5-9a39-ea55e634e36b"
 FerriteViz = "59d0093e-b1f1-4fb7-ac85-ab57e45f39d9"
 JSServe = "824d6782-a2ef-11e9-3a09-e5662e0c26f9"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -168,7 +210,9 @@ WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]
 BlockArrays = "~0.16.20"
+Colors = "~0.12.8"
 Ferrite = "~0.3.7"
+FerriteGmsh = "~0.1.0"
 FerriteViz = "~0.1.1"
 JSServe = "~1.2.6"
 PlutoUI = "~0.7.43"
@@ -181,7 +225,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "22a4b8256f08186e1f040cfcc61c57834f4b0ca3"
+project_hash = "22e046ddc88f10e34ee494ae1df321de3eb72fb5"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -463,11 +507,25 @@ git-tree-sha1 = "c6033cc3892d0ef5bb9cd29b7f2f0331ea5184ea"
 uuid = "f5851436-0d7a-5f13-b9de-f02708fd171a"
 version = "3.3.10+0"
 
+[[deps.FLTK_jll]]
+deps = ["Artifacts", "Fontconfig_jll", "FreeType2_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libglvnd_jll", "Pkg", "Xorg_libX11_jll", "Xorg_libXext_jll", "Xorg_libXfixes_jll", "Xorg_libXft_jll", "Xorg_libXinerama_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
+git-tree-sha1 = "72a4842f93e734f378cf381dae2ca4542f019d23"
+uuid = "4fce6fc7-ba6a-5f4c-898f-77e99806d6f8"
+version = "1.3.8+0"
+
 [[deps.Ferrite]]
 deps = ["EnumX", "LinearAlgebra", "NearestNeighbors", "Reexport", "SparseArrays", "Tensors", "WriteVTK"]
 git-tree-sha1 = "ec47cd34e82e8ab1dc70024feb652386ee2c6406"
 uuid = "c061ca5d-56c9-439f-9c0e-210fe06d3992"
 version = "0.3.7"
+
+[[deps.FerriteGmsh]]
+deps = ["Ferrite", "Reexport", "gmsh_jll"]
+git-tree-sha1 = "65793b4860bb5801d903ef3b523cff40cd4c7f78"
+repo-rev = "master"
+repo-url = "https://github.com/Ferrite-FEM/FerriteGmsh.jl.git"
+uuid = "4f95f4f8-b27c-4ae5-9a39-ea55e634e36b"
+version = "0.1.0"
 
 [[deps.FerriteViz]]
 deps = ["Ferrite", "LinearAlgebra", "Makie", "Tensors"]
@@ -540,6 +598,17 @@ git-tree-sha1 = "aa31987c2ba8704e23c6c8ba8a4f769d5d7e4f91"
 uuid = "559328eb-81f9-559d-9380-de523a88c83c"
 version = "1.0.10+0"
 
+[[deps.GLU_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Libglvnd_jll", "Pkg"]
+git-tree-sha1 = "65af046f4221e27fb79b28b6ca89dd1d12bc5ec7"
+uuid = "bd17208b-e95e-5925-bf81-e2f59b3e5c61"
+version = "9.0.1+0"
+
+[[deps.GMP_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "781609d7-10c4-51f6-84f2-b8444358ff6d"
+version = "6.2.1+2"
+
 [[deps.GeoInterface]]
 deps = ["Extents"]
 git-tree-sha1 = "fb28b5dc239d0174d7297310ef7b84a11804dfab"
@@ -592,6 +661,12 @@ version = "0.6.5"
 git-tree-sha1 = "53bb909d1151e57e2484c3d1b53e19552b887fb2"
 uuid = "42e2da0e-8278-4e71-bc24-59509adca0fe"
 version = "1.0.2"
+
+[[deps.HDF5_jll]]
+deps = ["Artifacts", "JLLWrappers", "LibCURL_jll", "Libdl", "OpenSSL_jll", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "4cc2bb72df6ff40b055295fdef6d92955f9dede8"
+uuid = "0234f1f7-429e-5d53-9886-15a909be8d59"
+version = "1.12.2+2"
 
 [[deps.HTTP]]
 deps = ["Base64", "Dates", "IniFile", "Logging", "MbedTLS", "NetworkOptions", "Sockets", "URIs"]
@@ -776,6 +851,12 @@ git-tree-sha1 = "bf36f528eec6634efc60d7ec062008f171071434"
 uuid = "88015f11-f218-50d7-93a8-a6af411a945d"
 version = "3.0.0+1"
 
+[[deps.LLVMOpenMP_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "ad927676766e6529a2d5152f12040620447c0c9b"
+uuid = "1d63c593-3942-5779-bab2-d838dc0a180e"
+version = "14.0.4+0"
+
 [[deps.LZO_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "e5b909bcf985c5e2605737d2ce278ed791b89be6"
@@ -830,6 +911,12 @@ git-tree-sha1 = "64613c82a59c120435c067c2b809fc61cf5166ae"
 uuid = "d4300ac3-e22c-5743-9152-c294e39db1e4"
 version = "1.8.7+0"
 
+[[deps.Libglvnd_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Xorg_libX11_jll", "Xorg_libXext_jll"]
+git-tree-sha1 = "7739f837d6447403596a75d19ed01fd08d6f56bf"
+uuid = "7e76a0d4-f3c7-5321-8279-8d96eeed0f29"
+version = "1.3.0+3"
+
 [[deps.Libgpg_error_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "c333716e46366857753e273ce6a69ee0945a6db9"
@@ -870,6 +957,12 @@ version = "0.9.0"
 deps = ["Libdl", "libblastrampoline_jll"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
+[[deps.LinearElasticity_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "71e8ee0f9fe0e86a8f8c7f28361e5118eab2f93f"
+uuid = "18c40d15-f7cd-5a6d-bc92-87468d86c5db"
+version = "5.0.0+0"
+
 [[deps.LogExpFunctions]]
 deps = ["ChainRulesCore", "ChangesOfVariables", "DocStringExtensions", "InverseFunctions", "IrrationalConstants", "LinearAlgebra"]
 git-tree-sha1 = "94d9c52ca447e23eac0c0f074effbcd38830deb5"
@@ -879,11 +972,23 @@ version = "0.3.18"
 [[deps.Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
+[[deps.METIS_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "1d31872bb9c5e7ec1f618e8c4a56c8b0d9bddc7e"
+uuid = "d00139f3-1899-568f-a2f0-47f597d42d70"
+version = "5.1.1+0"
+
 [[deps.MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
 git-tree-sha1 = "41d162ae9c868218b1f3fe78cba878aa348c2d26"
 uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 version = "2022.1.0+0"
+
+[[deps.MMG_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "LinearElasticity_jll", "Pkg", "SCOTCH_jll"]
+git-tree-sha1 = "70a59df96945782bb0d43b56d0fbfdf1ce2e4729"
+uuid = "86086c02-e288-5929-a127-40944b0018b7"
+version = "5.6.0+0"
 
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
@@ -980,6 +1085,12 @@ version = "1.0.2"
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
+
+[[deps.OCCT_jll]]
+deps = ["Artifacts", "FreeType2_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "Pkg", "Xorg_libX11_jll", "Xorg_libXext_jll", "Xorg_libXfixes_jll", "Xorg_libXft_jll", "Xorg_libXinerama_jll", "Xorg_libXrender_jll"]
+git-tree-sha1 = "acc8099ae8ed10226dc8424fb256ec9fe367a1f0"
+uuid = "baad4e97-8daa-5946-aac2-2edac59d34e1"
+version = "7.6.2+2"
 
 [[deps.Observables]]
 git-tree-sha1 = "fe29afdef3d0c4a8286128d4e45cc50621b1e43d"
@@ -1183,6 +1294,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "68db32dff12bb6127bac73c209881191bf0efbb7"
 uuid = "f50d1b31-88e8-58de-be2c-1cc44531875f"
 version = "0.3.0+0"
+
+[[deps.SCOTCH_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "7110b749766853054ce8a2afaa73325d72d32129"
+uuid = "a8d0f55d-b80e-548d-aff6-1a04c175f0f9"
+version = "6.1.3+0"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
@@ -1460,6 +1577,24 @@ git-tree-sha1 = "b7c0aa8c376b31e4852b360222848637f481f8c3"
 uuid = "1082639a-0dae-5f34-9b06-72781eeb8cb3"
 version = "1.3.4+4"
 
+[[deps.Xorg_libXfixes_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Xorg_libX11_jll"]
+git-tree-sha1 = "0e0dc7431e7a0587559f9294aeec269471c991a4"
+uuid = "d091e8ba-531a-589c-9de9-94069b037ed8"
+version = "5.0.3+4"
+
+[[deps.Xorg_libXft_jll]]
+deps = ["Fontconfig_jll", "Libdl", "Pkg", "Xorg_libXrender_jll"]
+git-tree-sha1 = "754b542cdc1057e0a2f1888ec5414ee17a4ca2a1"
+uuid = "2c808117-e144-5220-80d1-69d4eaa9352c"
+version = "2.3.3+1"
+
+[[deps.Xorg_libXinerama_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Xorg_libXext_jll"]
+git-tree-sha1 = "26be8b1c342929259317d8b9f7b53bf2bb73b123"
+uuid = "d1454406-59df-5ea1-beac-c340f2130bc3"
+version = "1.1.4+4"
+
 [[deps.Xorg_libXrender_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Xorg_libX11_jll"]
 git-tree-sha1 = "19560f30fd49f4d4efbe7002a1037f8c43d43b96"
@@ -1494,6 +1629,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "e45044cd873ded54b6a5bac0eb5c971392cf1927"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
 version = "1.5.2+0"
+
+[[deps.gmsh_jll]]
+deps = ["Artifacts", "Cairo_jll", "CompilerSupportLibraries_jll", "FLTK_jll", "FreeType2_jll", "GLU_jll", "GMP_jll", "HDF5_jll", "JLLWrappers", "JpegTurbo_jll", "LLVMOpenMP_jll", "Libdl", "Libglvnd_jll", "METIS_jll", "MMG_jll", "OCCT_jll", "Pkg", "Xorg_libX11_jll", "Xorg_libXext_jll", "Xorg_libXfixes_jll", "Xorg_libXft_jll", "Xorg_libXinerama_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
+git-tree-sha1 = "9774ebf68348b3b56c74a78b829051310163fd76"
+uuid = "630162c2-fc9b-58b3-9910-8442a8a132e6"
+version = "4.10.2+0"
 
 [[deps.isoband_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1581,6 +1722,8 @@ version = "3.5.0+0"
 # ╟─2e2c26db-325e-44ca-b3a6-58fb9bef3b3c
 # ╠═e09fed42-c861-41cb-962e-23367d7b5422
 # ╠═1b67dfd5-d426-426a-b2a3-a53c4d5d577c
+# ╠═fb9105c0-c109-4296-9d13-148fd31d19ee
+# ╟─3f98a1fe-a88a-40a6-84af-064ff718345d
 # ╟─a85d454b-2c54-4738-b5a2-cefbe9706860
 # ╟─6f44adaf-be84-45a7-b28f-fb686faf6a83
 # ╟─00000000-0000-0000-0000-000000000001
