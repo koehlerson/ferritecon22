@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.12
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
@@ -35,8 +35,9 @@ end
 
 # ╔═╡ 96ff9c13-442b-4c93-8839-8693079c8d14
 begin
-	include("incompressible-elasticity.jl") #plotter is created inside here
-	addcellset!(plotter.dh.grid,"s1",Set((1,4,7))) # Bug in WGLMakie
+	include("incompressible-elasticity.jl") #Ferrite Docs Example
+	plotter = MakiePlotter(dh,u) #(dh,u) from example include
+	addcellset!(plotter.dh.grid,"s1",Set((1,))) # Bug in WGLMakie
 	plotter
 end
 
@@ -57,6 +58,8 @@ md"""
 
 ## inofficial version
 * I hate GUI based programs and want to stay in my terminal env with a customizable viewer that I can call from my Julia REPL
+
+![](https://i.imgflip.com/6uo2jc.jpg)
 """
 
 # ╔═╡ 45eea0f4-31e4-4a8c-a20a-323cb815a8ff
@@ -97,6 +100,12 @@ This means you can use
 - use any Makie backend you want
 """
 
+# ╔═╡ 5e47e10b-9068-4098-91f9-ba375b1ff675
+md"""deformation scale: $(@bind deformation_scale Slider(0:0.1:1.5, default=0))"""
+
+# ╔═╡ 44e273c8-e9b1-441f-aebb-e8942807cd1d
+md""" colormap: $(@bind colormap_select Select([:cividis, :inferno, :vik]))"""
+
 # ╔═╡ 86b22352-6fdf-4353-b613-336aaea3fa3f
 begin
 	fig = WGLMakie.Figure(resolution=(1200, 1300))
@@ -106,6 +115,13 @@ begin
 	fig[2,2] = WGLMakie.Colorbar(fig[2,1],sp2.plot)
 	wireframe!(fig[2,1],plotter,markersize=5,strokewidth=1,deformation_field=:u)
 	fig
+end
+
+# ╔═╡ 21404503-dffa-4d4e-8d05-d9a0205afd87
+begin
+	sp2.plot.attributes[:colormap][] = colormap_select
+	sp1.plot.attributes[:colormap][] = colormap_select
+	sp1.plot.attributes[:deformation_scale][] = deformation_scale
 end
 
 # ╔═╡ 2e2c26db-325e-44ca-b3a6-58fb9bef3b3c
@@ -165,6 +181,9 @@ begin
 	fig_logo
 end
 
+# ╔═╡ c7ce4772-9852-490c-baec-fe5411f0954a
+md"""![](https://c.tenor.com/y1yKziqaf50AAAAd/nice.gif)"""
+
 # ╔═╡ a85d454b-2c54-4738-b5a2-cefbe9706860
 md"""
 ## Some special things
@@ -178,7 +197,7 @@ md"""
 md"""
 # Missing Things
 
-- performant triangulation especially for higher order
+- performant triangulation on the gpu 
 - documented interface for custom cells
 
 ## Probably added soon
@@ -1718,12 +1737,16 @@ version = "3.5.0+0"
 # ╟─f266922d-a964-43c3-861b-19b793fe35ba
 # ╠═96ff9c13-442b-4c93-8839-8693079c8d14
 # ╟─0fba9a8f-1c8d-482a-88fb-9432ee102f67
+# ╟─5e47e10b-9068-4098-91f9-ba375b1ff675
+# ╟─44e273c8-e9b1-441f-aebb-e8942807cd1d
 # ╠═86b22352-6fdf-4353-b613-336aaea3fa3f
+# ╠═21404503-dffa-4d4e-8d05-d9a0205afd87
 # ╟─2e2c26db-325e-44ca-b3a6-58fb9bef3b3c
 # ╠═e09fed42-c861-41cb-962e-23367d7b5422
 # ╠═1b67dfd5-d426-426a-b2a3-a53c4d5d577c
 # ╠═fb9105c0-c109-4296-9d13-148fd31d19ee
 # ╟─3f98a1fe-a88a-40a6-84af-064ff718345d
+# ╟─c7ce4772-9852-490c-baec-fe5411f0954a
 # ╟─a85d454b-2c54-4738-b5a2-cefbe9706860
 # ╟─6f44adaf-be84-45a7-b28f-fb686faf6a83
 # ╟─00000000-0000-0000-0000-000000000001

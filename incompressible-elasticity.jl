@@ -173,4 +173,4 @@ linear    = Lagrange{2,RefTetrahedron,1}()
 quadratic = Lagrange{2,RefTetrahedron,2}()
 
 u,dh = solve(0.4999999, quadratic, linear);
-plotter = MakiePlotter(dh,u)
+#plotter = MakiePlotter(dh,u)
